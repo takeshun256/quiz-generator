@@ -1,0 +1,76 @@
+{{template "base.html" .}}
+{{define "title"}}ソース入力 - Quiz Generator{{end}}
+{{define "content"}}
+<h1 class="text-2xl font-bold mb-6">クイズを生成する</h1>
+
+<form method="POST" action="/generate" enctype="multipart/form-data" class="space-y-6">
+
+  <div>
+    <div class="flex gap-2 mb-3">
+      <button type="button" onclick="showTab('text')" id="tab-text"
+        class="tab-btn px-4 py-2 rounded text-sm font-medium bg-indigo-600 text-white">
+        テキスト貼付
+      </button>
+      <button type="button" onclick="showTab('file')" id="tab-file"
+        class="tab-btn px-4 py-2 rounded text-sm font-medium bg-gray-700 text-gray-300 hover:bg-gray-600">
+        ファイル
+      </button>
+      <button type="button" onclick="showTab('path')" id="tab-path"
+        class="tab-btn px-4 py-2 rounded text-sm font-medium bg-gray-700 text-gray-300 hover:bg-gray-600">
+        Obsidianパス
+      </button>
+    </div>
+
+    <div id="pane-text">
+      <textarea name="source_text" rows="10"
+        class="w-full bg-gray-800 border border-gray-700 rounded p-3 text-sm focus:outline-none focus:border-indigo-500"
+        placeholder="学習したいテキストやMarkdownをここに貼り付けてください..."></textarea>
+    </div>
+    <div id="pane-file" class="hidden">
+      <input type="file" name="source_file" accept=".md,.txt,.pdf"
+        class="w-full bg-gray-800 border border-gray-700 rounded p-3 text-sm">
+    </div>
+    <div id="pane-path" class="hidden">
+      <input type="text" name="source_path"
+        class="w-full bg-gray-800 border border-gray-700 rounded p-3 text-sm focus:outline-none focus:border-indigo-500"
+        placeholder="YOUR_VAULT_PATH/Inbox/study/...">
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm text-gray-400 mb-1">問題数</label>
+      <input type="number" name="count" value="10" min="1" max="30"
+        class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-sm focus:outline-none focus:border-indigo-500">
+    </div>
+    <div>
+      <label class="block text-sm text-gray-400 mb-1">クイズ形式</label>
+      <select name="format"
+        class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-sm focus:outline-none focus:border-indigo-500">
+        <option value="mix">ミックス（デフォルト）</option>
+        <option value="multiple">4択のみ</option>
+        <option value="fillblank">穴埋めのみ</option>
+      </select>
+    </div>
+  </div>
+
+  <button type="submit"
+    class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded transition">
+    🚀 クイズを生成する
+  </button>
+</form>
+
+<script>
+function showTab(name) {
+  ['text','file','path'].forEach(t => {
+    document.getElementById('pane-'+t).classList.toggle('hidden', t !== name);
+    const btn = document.getElementById('tab-'+t);
+    if (t === name) {
+      btn.className = 'tab-btn px-4 py-2 rounded text-sm font-medium bg-indigo-600 text-white';
+    } else {
+      btn.className = 'tab-btn px-4 py-2 rounded text-sm font-medium bg-gray-700 text-gray-300 hover:bg-gray-600';
+    }
+  });
+}
+</script>
+{{end}}

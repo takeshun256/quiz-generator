@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{block "title" .}}Quiz Generator{{end}}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@2.0.3"></script>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen">
+  <nav class="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center gap-6">
+    <a href="/" class="text-xl font-bold text-indigo-400">🎯 Quiz Generator</a>
+    <a href="/library" class="text-gray-400 hover:text-white text-sm">ライブラリ</a>
+  </nav>
+  <main class="max-w-2xl mx-auto px-4 py-8">
+    {{block "content" .}}{{end}}
+  </main>
+</body>
+</html>

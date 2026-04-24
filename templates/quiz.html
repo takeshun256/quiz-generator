@@ -1,0 +1,77 @@
+{{template "base.html" .}}
+{{define "title"}}クイズ - Quiz Generator{{end}}
+{{define "content"}}
+<div class="mb-6">
+  <div class="flex justify-between text-sm text-gray-400 mb-2">
+    <span>{{.QuizSet.Title}}</span>
+    <span>{{.Current}}/{{.Total}}問</span>
+  </div>
+  <div class="w-full bg-gray-800 rounded-full h-2">
+    <div class="bg-indigo-500 h-2 rounded-full transition-all"
+      style="width: {{.Progress}}%"></div>
+  </div>
+</div>
+
+<div id="question-area">
+  {{template "question-partial" .}}
+</div>
+{{end}}
+
+{{define "question-partial"}}
+<div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+  <p class="text-lg font-medium mb-6 leading-relaxed">{{.Question.Question}}</p>
+
+  <div class="space-y-3" id="options">
+    {{range $i, $opt := .Question.Options}}
+    <button
+      hx-post="/quiz/{{$.QuizSet.ID}}/answer"
+      hx-vals='{"question_id": "{{$.Question.ID}}", "chosen": "{{$opt}}", "position": "{{$.Current}}"}'
+      hx-target="#question-area"
+      hx-swap="innerHTML"
+      class="w-full text-left px-4 py-3 rounded-lg border border-gray-700 bg-gray-800 hover:border-indigo-500 hover:bg-gray-700 transition text-sm">
+      {{$opt}}
+    </button>
+    {{end}}
+  </div>
+</div>
+{{end}}
+
+{{define "answer-partial"}}
+<div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+  <p class="text-lg font-medium mb-6 leading-relaxed">{{.Question.Question}}</p>
+
+  <div class="space-y-3 mb-6">
+    {{range $opt := .Question.Options}}
+    <div class="px-4 py-3 rounded-lg border text-sm
+      {{if eq $opt $.Question.Correct}}border-green-500 bg-green-900/30 text-green-300
+      {{else if and (eq $opt $.Chosen) (ne $opt $.Question.Correct)}}border-red-500 bg-red-900/30 text-red-300
+      {{else}}border-gray-700 bg-gray-800 text-gray-400{{end}}">
+      {{$opt}}
+      {{if eq $opt $.Question.Correct}} ✓{{end}}
+      {{if and (eq $opt $.Chosen) (ne $opt $.Question.Correct)}} ✗{{end}}
+    </div>
+    {{end}}
+  </div>
+
+  {{if .Question.Explanation}}
+  <div class="bg-gray-800 rounded-lg p-4 mb-6 text-sm text-gray-300 border-l-4 border-indigo-500">
+    <span class="font-bold text-indigo-400">解説: </span>{{.Question.Explanation}}
+  </div>
+  {{end}}
+
+  {{if .IsLast}}
+  <a href="/quiz/{{.QuizSet.ID}}/result"
+    class="block w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded transition">
+    結果を見る 🏁
+  </a>
+  {{else}}
+  <button
+    hx-get="/quiz/{{.QuizSet.ID}}/question?position={{.Next}}"
+    hx-target="#question-area"
+    hx-swap="innerHTML"
+    class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded transition">
+    次の問題へ →
+  </button>
+  {{end}}
+</div>
+{{end}}
