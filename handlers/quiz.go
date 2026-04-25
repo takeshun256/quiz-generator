@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -31,11 +32,12 @@ func QuizPlayHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 
 		total := quizSet.Count
 		tmpl.ExecuteTemplate(w, "quiz.html", map[string]any{
-			"QuizSet":  quizSet,
-			"Question": question,
-			"Current":  1,
-			"Total":    total,
-			"Progress": 100 / total,
+			"QuizSet":   quizSet,
+			"Question":  question,
+			"Current":   1,
+			"Total":     total,
+			"Progress":  1 * 100 / total,
+			"TimeLimit": quizSet.TimeLimit,
 		})
 	}
 }
@@ -59,11 +61,12 @@ func QuizQuestionHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 
 		total := quizSet.Count
 		tmpl.ExecuteTemplate(w, "question-partial", map[string]any{
-			"QuizSet":  quizSet,
-			"Question": question,
-			"Current":  position,
-			"Total":    total,
-			"Progress": position * 100 / total,
+			"QuizSet":   quizSet,
+			"Question":  question,
+			"Current":   position,
+			"Total":     total,
+			"Progress":  position * 100 / total,
+			"TimeLimit": quizSet.TimeLimit,
 		})
 	}
 }
@@ -76,6 +79,7 @@ func QuizAnswerHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 		questionID, _ := strconv.ParseInt(r.FormValue("question_id"), 10, 64)
 		chosen := r.FormValue("chosen")
 		position, _ := strconv.Atoi(r.FormValue("position"))
+		timeout := r.FormValue("timeout") == "1"
 
 		quizSet, err := models.GetQuizSet(db, quizSetID)
 		if err != nil {
@@ -89,7 +93,7 @@ func QuizAnswerHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		isCorrect := chosen == question.Correct
+		isCorrect := !timeout && chosen == question.Correct
 		models.SaveAnswer(db, quizSetID, questionID, chosen, isCorrect)
 
 		total := quizSet.Count
@@ -97,13 +101,16 @@ func QuizAnswerHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 		next := position + 1
 
 		tmpl.ExecuteTemplate(w, "answer-partial", map[string]any{
-			"QuizSet":  quizSet,
-			"Question": question,
-			"Chosen":   chosen,
-			"IsLast":   isLast,
-			"Next":     next,
-			"Current":  position,
-			"Total":    total,
+			"QuizSet":   quizSet,
+			"Question":  question,
+			"Chosen":    chosen,
+			"IsLast":    isLast,
+			"Next":      next,
+			"Current":   position,
+			"Total":     total,
+			"Progress":  position * 100 / total,
+			"Timeout":   timeout,
+			"TimeLimit": quizSet.TimeLimit,
 		})
 	}
 }
@@ -112,6 +119,7 @@ type ResultItem struct {
 	Question  models.Question
 	Chosen    string
 	IsCorrect bool
+	Timeout   bool
 }
 
 func QuizResultHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
@@ -150,6 +158,11 @@ func QuizResultHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 		scorePercent := 0
 		if total > 0 {
 			scorePercent = score * 100 / total
+		}
+
+		// attempt を保存
+		if err := models.SaveAttempt(db, quizSetID, score, total); err != nil {
+			log.Printf("SaveAttempt error: %v", err)
 		}
 
 		tmpl.ExecuteTemplate(w, "result.html", map[string]any{

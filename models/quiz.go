@@ -10,6 +10,7 @@ type QuizSet struct {
 	ID         int64
 	Title      string
 	SourceText string
+	TimeLimit  int // seconds per question, 0 = no limit
 	CreatedAt  time.Time
 	Count      int
 }
@@ -25,10 +26,18 @@ type Question struct {
 	Position    int
 }
 
-func CreateQuizSet(db *sql.DB, title, sourceText string) (int64, error) {
+type Attempt struct {
+	ID         int64
+	QuizSetID  int64
+	Score      int
+	Total      int
+	FinishedAt time.Time
+}
+
+func CreateQuizSet(db *sql.DB, title, sourceText string, timeLimit int) (int64, error) {
 	res, err := db.Exec(
-		`INSERT INTO quiz_sets (title, source_text) VALUES (?, ?)`,
-		title, sourceText,
+		`INSERT INTO quiz_sets (title, source_text, time_limit) VALUES (?, ?, ?)`,
+		title, sourceText, timeLimit,
 	)
 	if err != nil {
 		return 0, err
@@ -87,13 +96,13 @@ func CountQuestions(db *sql.DB, quizSetID int64) (int, error) {
 
 func GetQuizSet(db *sql.DB, id int64) (*QuizSet, error) {
 	row := db.QueryRow(
-		`SELECT qs.id, qs.title, qs.source_text, qs.created_at, COUNT(q.id)
+		`SELECT qs.id, qs.title, qs.source_text, qs.time_limit, qs.created_at, COUNT(q.id)
 		 FROM quiz_sets qs LEFT JOIN questions q ON q.quiz_set_id = qs.id
 		 WHERE qs.id = ? GROUP BY qs.id`,
 		id,
 	)
 	var s QuizSet
-	err := row.Scan(&s.ID, &s.Title, &s.SourceText, &s.CreatedAt, &s.Count)
+	err := row.Scan(&s.ID, &s.Title, &s.SourceText, &s.TimeLimit, &s.CreatedAt, &s.Count)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +111,7 @@ func GetQuizSet(db *sql.DB, id int64) (*QuizSet, error) {
 
 func ListQuizSets(db *sql.DB) ([]QuizSet, error) {
 	rows, err := db.Query(
-		`SELECT qs.id, qs.title, qs.source_text, qs.created_at, COUNT(q.id)
+		`SELECT qs.id, qs.title, qs.source_text, qs.time_limit, qs.created_at, COUNT(q.id)
 		 FROM quiz_sets qs LEFT JOIN questions q ON q.quiz_set_id = qs.id
 		 GROUP BY qs.id ORDER BY qs.created_at DESC`,
 	)
@@ -113,7 +122,7 @@ func ListQuizSets(db *sql.DB) ([]QuizSet, error) {
 	var sets []QuizSet
 	for rows.Next() {
 		var s QuizSet
-		if err := rows.Scan(&s.ID, &s.Title, &s.SourceText, &s.CreatedAt, &s.Count); err != nil {
+		if err := rows.Scan(&s.ID, &s.Title, &s.SourceText, &s.TimeLimit, &s.CreatedAt, &s.Count); err != nil {
 			return nil, err
 		}
 		sets = append(sets, s)
@@ -157,6 +166,35 @@ func GetAnswers(db *sql.DB, quizSetID int64) (map[int64]string, error) {
 		m[qid] = chosen
 	}
 	return m, nil
+}
+
+func SaveAttempt(db *sql.DB, quizSetID int64, score, total int) error {
+	_, err := db.Exec(
+		`INSERT INTO attempts (quiz_set_id, score, total) VALUES (?, ?, ?)`,
+		quizSetID, score, total,
+	)
+	return err
+}
+
+func GetAttempts(db *sql.DB, quizSetID int64) ([]Attempt, error) {
+	rows, err := db.Query(
+		`SELECT id, quiz_set_id, score, total, finished_at
+		 FROM attempts WHERE quiz_set_id = ? ORDER BY finished_at DESC LIMIT 10`,
+		quizSetID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var attempts []Attempt
+	for rows.Next() {
+		var a Attempt
+		if err := rows.Scan(&a.ID, &a.QuizSetID, &a.Score, &a.Total, &a.FinishedAt); err != nil {
+			return nil, err
+		}
+		attempts = append(attempts, a)
+	}
+	return attempts, nil
 }
 
 type scanner interface {

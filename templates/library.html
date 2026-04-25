@@ -1,43 +1,67 @@
 {{template "base.html" .}}
-{{define "title"}}ライブラリ - Quiz Generator{{end}}
+{{define "title"}}問題集 - Quiz Generator{{end}}
 {{define "content"}}
 <div class="flex justify-between items-center mb-6">
-  <h1 class="text-2xl font-bold">ライブラリ</h1>
+  <h1 class="text-2xl font-bold">問題集</h1>
   <a href="/" class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold px-4 py-2 rounded transition">
     + 新規生成
   </a>
 </div>
 
-{{if not .QuizSets}}
-<p class="text-gray-400 text-center py-16">まだクイズがありません。<br>
+{{if not .Items}}
+<p class="text-gray-400 text-center py-16">まだ問題集がありません。<br>
   <a href="/" class="text-indigo-400 hover:underline">最初のクイズを生成する</a>
 </p>
 {{else}}
-<div class="space-y-3">
-  {{range .QuizSets}}
-  <div class="bg-gray-900 rounded-xl p-4 border border-gray-800 flex items-center gap-4">
-    <div class="flex-1">
-      <p class="font-medium">{{.Title}}</p>
-      <p class="text-xs text-gray-400 mt-1">{{.Count}}問 · {{.CreatedAt.Format "2006-01-02 15:04"}}</p>
+<div class="space-y-4">
+  {{range .Items}}
+  <div class="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+    {{/* ヘッダー行 */}}
+    <div class="p-4 flex items-start gap-4">
+      <div class="flex-1 min-w-0">
+        <p class="font-medium truncate">{{.Title}}</p>
+        <p class="text-xs text-gray-400 mt-1">
+          {{.Count}}問
+          {{if gt .TimeLimit 0}} · ⏱ {{.TimeLimit}}秒/問{{end}}
+          · {{.CreatedAt.Format "2006-01-02 15:04"}}
+        </p>
+      </div>
+      <div class="flex gap-2 shrink-0">
+        <a href="/quiz/{{.ID}}"
+          class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded transition">
+          プレイ
+        </a>
+        <a href="/library/{{.ID}}/export"
+          class="text-xs bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded transition">
+          JSON
+        </a>
+        <button
+          hx-delete="/library/{{.ID}}"
+          hx-confirm="この問題集を削除しますか？"
+          hx-target="closest div.bg-gray-900"
+          hx-swap="outerHTML"
+          class="text-xs bg-red-900 hover:bg-red-800 text-red-300 px-3 py-1.5 rounded transition">
+          削除
+        </button>
+      </div>
     </div>
-    <div class="flex gap-2">
-      <a href="/quiz/{{.ID}}"
-        class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded transition">
-        プレイ
-      </a>
-      <a href="/library/{{.ID}}/export"
-        class="text-xs bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded transition">
-        JSON
-      </a>
-      <button
-        hx-delete="/library/{{.ID}}"
-        hx-confirm="このクイズセットを削除しますか？"
-        hx-target="closest div.bg-gray-900"
-        hx-swap="outerHTML"
-        class="text-xs bg-red-900 hover:bg-red-800 text-red-300 px-3 py-1.5 rounded transition">
-        削除
-      </button>
+
+    {{/* 挑戦履歴 */}}
+    {{if .Attempts}}
+    <div class="border-t border-gray-800 px-4 py-3 bg-gray-950/50">
+      <p class="text-xs text-gray-500 mb-2">挑戦履歴</p>
+      <div class="flex flex-wrap gap-2">
+        {{range .Attempts}}
+        <span class="text-xs px-2 py-1 rounded
+          {{if ge .Percent 80}}bg-green-900/50 text-green-300
+          {{else if ge .Percent 60}}bg-yellow-900/50 text-yellow-300
+          {{else}}bg-gray-800 text-gray-400{{end}}">
+          {{.Score}}/{{.Total}} ({{.Percent}}%) · {{.FinishedAt.Format "01/02 15:04"}}
+        </span>
+        {{end}}
+      </div>
     </div>
+    {{end}}
   </div>
   {{end}}
 </div>

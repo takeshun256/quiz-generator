@@ -100,6 +100,10 @@ func GenerateHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 		if format == "" {
 			format = ai.FormatMix
 		}
+		timeLimit, _ := strconv.Atoi(r.FormValue("time_limit"))
+		if timeLimit < 0 {
+			timeLimit = 0
+		}
 
 		jobID := newJobID()
 		job := &Job{ID: jobID, Status: "running", Done: make(chan struct{})}
@@ -122,7 +126,7 @@ func GenerateHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 				return
 			}
 
-			quizSetID, err := models.CreateQuizSet(db, quiz.Title, sourceText)
+			quizSetID, err := models.CreateQuizSet(db, quiz.Title, sourceText, timeLimit)
 			if err != nil {
 				log.Printf("CreateQuizSet error: %v", err)
 				jobsMu.Lock()

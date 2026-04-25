@@ -12,6 +12,16 @@ import (
 	"github.com/takeshun256/quiz-generator/models"
 )
 
+type AttemptView struct {
+	models.Attempt
+	Percent int
+}
+
+type QuizSetWithAttempts struct {
+	models.QuizSet
+	Attempts []AttemptView
+}
+
 func LibraryHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sets, err := models.ListQuizSets(db)
@@ -19,8 +29,21 @@ func LibraryHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 			http.Error(w, "DB error", http.StatusInternalServerError)
 			return
 		}
+		var items []QuizSetWithAttempts
+		for _, s := range sets {
+			raw, _ := models.GetAttempts(db, s.ID)
+			var avs []AttemptView
+			for _, a := range raw {
+				pct := 0
+				if a.Total > 0 {
+					pct = a.Score * 100 / a.Total
+				}
+				avs = append(avs, AttemptView{Attempt: a, Percent: pct})
+			}
+			items = append(items, QuizSetWithAttempts{QuizSet: s, Attempts: avs})
+		}
 		tmpl.ExecuteTemplate(w, "library.html", map[string]any{
-			"QuizSets": sets,
+			"Items": items,
 		})
 	}
 }

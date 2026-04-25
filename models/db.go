@@ -24,6 +24,7 @@ func migrate(db *sql.DB) error {
 			id          INTEGER PRIMARY KEY AUTOINCREMENT,
 			title       TEXT NOT NULL,
 			source_text TEXT,
+			time_limit  INTEGER NOT NULL DEFAULT 0,
 			created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
 		);
 		CREATE TABLE IF NOT EXISTS questions (
@@ -44,6 +45,18 @@ func migrate(db *sql.DB) error {
 			is_correct  INTEGER NOT NULL,
 			answered_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		);
+		CREATE TABLE IF NOT EXISTS attempts (
+			id          INTEGER PRIMARY KEY AUTOINCREMENT,
+			quiz_set_id INTEGER NOT NULL REFERENCES quiz_sets(id) ON DELETE CASCADE,
+			score       INTEGER NOT NULL,
+			total       INTEGER NOT NULL,
+			finished_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		);
 	`)
-	return err
+	if err != nil {
+		return err
+	}
+	// 既存DBへのカラム追加（エラーは無視）
+	db.Exec(`ALTER TABLE quiz_sets ADD COLUMN time_limit INTEGER NOT NULL DEFAULT 0`)
+	return nil
 }
