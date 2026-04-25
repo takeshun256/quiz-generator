@@ -4,9 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
-
-	openai "github.com/sashabaranov/go-openai"
+	"os/exec"
+	"strings"
 )
 
 type GeneratedQuiz struct {
@@ -30,13 +29,12 @@ const (
 	FormatMix       QuizFormat = "mix"
 )
 
-func GenerateQuiz(ctx context.Context, sourceText string, count int, format QuizFormat) (*GeneratedQuiz, error) {
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		return nil, fmt.Errorf("OPENAI_API_KEY is not set")
-	}
-	client := openai.NewClient(apiKey)
+// claudeOutput は `claude --output-format json` の戻り値構造
+type claudeOutput struct {
+	Result string `json:"result"`
+}
 
+func GenerateQuiz(ctx context.Context, sourceText string, count int, format QuizFormat) (*GeneratedQuiz, error) {
 	formatInstruction := ""
 	switch format {
 	case FormatMultiple:
@@ -75,26 +73,34 @@ func GenerateQuiz(ctx context.Context, sourceText string, count int, format Quiz
 ソーステキスト:
 %s`, count, formatInstruction, sourceText)
 
-	resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-		Model: openai.GPT4oMini,
-		Messages: []openai.ChatCompletionMessage{
-			{
-				Role:    openai.ChatMessageRoleUser,
-				Content: prompt,
-			},
-		},
-		ResponseFormat: &openai.ChatCompletionResponseFormat{
-			Type: openai.ChatCompletionResponseFormatTypeJSONObject,
-		},
-	})
+	cmd := exec.CommandContext(ctx, "claude", "--bare", "-p", prompt, "--output-format", "json")
+	out, err := cmd.Output()
 	if err != nil {
-		return nil, fmt.Errorf("openai API error: %w", err)
+		stderr := ""
+		if ee, ok := err.(*exec.ExitError); ok {
+			stderr = string(ee.Stderr)
+		}
+		return nil, fmt.Errorf("claude command failed: %w\nstderr: %s", err, stderr)
 	}
 
-	content := resp.Choices[0].Message.Content
+	var response claudeOutput
+	if err := json.Unmarshal(out, &response); err != nil {
+		// --bare モードでは result フィールドなしに直接テキストが返る場合もあるためフォールバック
+		response.Result = strings.TrimSpace(string(out))
+	}
+
+	// result の中の JSON を抽出（マークダウンコードブロックが混入した場合に対応）
+	raw := response.Result
+	if idx := strings.Index(raw, "{"); idx >= 0 {
+		raw = raw[idx:]
+	}
+	if idx := strings.LastIndex(raw, "}"); idx >= 0 {
+		raw = raw[:idx+1]
+	}
+
 	var quiz GeneratedQuiz
-	if err := json.Unmarshal([]byte(content), &quiz); err != nil {
-		return nil, fmt.Errorf("failed to parse quiz JSON: %w", err)
+	if err := json.Unmarshal([]byte(raw), &quiz); err != nil {
+		return nil, fmt.Errorf("failed to parse quiz JSON: %w\nraw: %s", err, raw)
 	}
 	if len(quiz.Questions) == 0 {
 		return nil, fmt.Errorf("no questions generated")
