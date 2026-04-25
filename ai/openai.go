@@ -73,7 +73,7 @@ func GenerateQuiz(ctx context.Context, sourceText string, count int, format Quiz
 ソーステキスト:
 %s`, count, formatInstruction, sourceText)
 
-	cmd := exec.CommandContext(ctx, "claude", "--bare", "-p", prompt, "--output-format", "json")
+	cmd := exec.CommandContext(ctx, "claude", "-p", prompt, "--output-format", "json")
 	out, err := cmd.Output()
 	if err != nil {
 		stderr := ""
