@@ -1,14 +1,19 @@
 package handlers
 
 import (
+	"archive/zip"
+	"bytes"
 	"context"
 	"database/sql"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -54,11 +59,21 @@ func GenerateHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 		}
 
 		// ファイルアップロード
-		if f, _, err := r.FormFile("source_file"); err == nil {
+		if f, fh, err := r.FormFile("source_file"); err == nil {
 			defer f.Close()
 			b, err := io.ReadAll(f)
 			if err == nil {
-				sourceText = string(b)
+				ext := strings.ToLower(filepath.Ext(fh.Filename))
+				if ext == ".pptx" {
+					text, err := extractPPTX(b)
+					if err != nil {
+						http.Error(w, "PPTXの読み込みに失敗しました: "+err.Error(), http.StatusBadRequest)
+						return
+					}
+					sourceText = text
+				} else {
+					sourceText = string(b)
+				}
 			}
 		}
 
@@ -178,4 +193,73 @@ func GeneratingStatusHandler() http.HandlerFunc {
 			w.WriteHeader(http.StatusOK)
 		}
 	}
+}
+
+// extractPPTX はPPTXファイルのバイト列からテキストを抽出する。
+// PPTXはZIPアーカイブで、ppt/slides/slide*.xml にスライドテキストが含まれる。
+func extractPPTX(data []byte) (string, error) {
+	r, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	if err != nil {
+		return "", fmt.Errorf("ZIPとして開けません: %w", err)
+	}
+
+	var sb strings.Builder
+	for _, f := range r.File {
+		// スライドXMLのみ対象
+		if !strings.HasPrefix(f.Name, "ppt/slides/slide") || !strings.HasSuffix(f.Name, ".xml") {
+			continue
+		}
+		rc, err := f.Open()
+		if err != nil {
+			continue
+		}
+		text, err := extractXMLText(rc)
+		rc.Close()
+		if err != nil {
+			continue
+		}
+		if text != "" {
+			sb.WriteString(text)
+			sb.WriteString("\n\n")
+		}
+	}
+
+	result := strings.TrimSpace(sb.String())
+	if result == "" {
+		return "", fmt.Errorf("テキストが見つかりませんでした")
+	}
+	return result, nil
+}
+
+// extractXMLText はXMLリーダーから <a:t> 要素のテキストを抽出する。
+func extractXMLText(r io.Reader) (string, error) {
+	var sb strings.Builder
+	dec := xml.NewDecoder(r)
+	inText := false
+	for {
+		tok, err := dec.Token()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return sb.String(), nil
+		}
+		switch t := tok.(type) {
+		case xml.StartElement:
+			// <a:t> はDrawingML のテキストラン要素
+			if t.Name.Local == "t" {
+				inText = true
+			}
+		case xml.EndElement:
+			if t.Name.Local == "t" {
+				inText = false
+				sb.WriteString(" ")
+			}
+		case xml.CharData:
+			if inText {
+				sb.Write(t)
+			}
+		}
+	}
+	return strings.TrimSpace(sb.String()), nil
 }
