@@ -3,39 +3,42 @@
 {{define "content"}}
 <div class="text-center mb-8">
   <div class="text-6xl mb-4">{{if ge .ScorePercent 80}}🎉{{else if ge .ScorePercent 60}}😊{{else}}💪{{end}}</div>
-  <h1 class="text-3xl font-bold mb-2">{{.Score}} / {{.Total}} 正解</h1>
-  <p class="text-gray-400">{{.ScorePercent}}%</p>
+  <h1 class="text-3xl font-bold mb-1 text-slate-100">{{.Score}} / {{.Total}} 正解</h1>
+  <p class="text-slate-400 text-sm">{{.ScorePercent}}%</p>
 </div>
 
 <div class="flex gap-3 mb-8">
-  <a href="/quiz/{{.QuizSet.ID}}"
-    class="flex-1 text-center bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded transition text-sm">
+  <a href="/quiz/{{.QuizSet.ID}}/start"
+    class="flex-1 text-center text-white font-bold py-2.5 rounded-xl transition hover:opacity-90 text-sm"
+    style="background:#4f46e5">
     もう一度
   </a>
   <a href="/library"
-    class="flex-1 text-center bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded transition text-sm">
-    ライブラリ
+    class="flex-1 text-center text-slate-200 font-medium py-2.5 rounded-xl transition hover:opacity-90 text-sm"
+    style="background:#2e3a50">
+    問題集
   </a>
   <a href="/library/{{.QuizSet.ID}}/export"
-    class="flex-1 text-center bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded transition text-sm">
+    class="flex-1 text-center text-slate-200 font-medium py-2.5 rounded-xl transition hover:opacity-90 text-sm"
+    style="background:#2e3a50">
     JSON出力
   </a>
 </div>
 
-<h2 class="text-lg font-bold mb-4 text-gray-300">振り返り</h2>
-<div class="space-y-4">
+<h2 class="text-sm font-semibold mb-4 text-slate-400 uppercase tracking-wider">振り返り</h2>
+<div class="space-y-3">
   {{range .Items}}
-  <div class="bg-gray-900 rounded-xl p-4 border {{if .IsCorrect}}border-green-800{{else}}border-red-800{{end}}">
+  <div class="p-4 rounded-xl" style="background:#252d3d;border:1px solid {{if .IsCorrect}}#166534{{else}}#7f1d1d{{end}}">
     <div class="flex items-start gap-3">
-      <span class="text-xl mt-0.5">{{if .IsCorrect}}✅{{else}}❌{{end}}</span>
-      <div class="flex-1">
-        <p class="font-medium text-sm mb-2">{{.Question.Question}}</p>
+      <span class="text-lg mt-0.5 shrink-0">{{if .IsCorrect}}✅{{else}}❌{{end}}</span>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm text-slate-200 mb-2 leading-relaxed">{{.Question.Question}}</p>
         {{if not .IsCorrect}}
         <p class="text-xs text-red-400 mb-1">あなたの回答: {{.Chosen}}</p>
-        <p class="text-xs text-green-400 mb-2">正解: {{.Question.Correct}}</p>
+        <p class="text-xs text-emerald-400 mb-2">正解: {{.Question.Correct}}</p>
         {{end}}
         {{if .Question.Explanation}}
-        <p class="text-xs text-gray-400">{{.Question.Explanation}}</p>
+        <p class="text-xs text-slate-500 leading-relaxed">{{.Question.Explanation}}</p>
         {{end}}
       </div>
     </div>

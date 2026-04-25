@@ -1,61 +1,61 @@
 {{template "base.html" .}}
 {{define "title"}}ソース入力 - Quiz Generator{{end}}
 {{define "content"}}
-<h1 class="text-2xl font-bold mb-6">クイズを生成する</h1>
+<h1 class="text-xl font-bold mb-6 text-slate-100">クイズを生成する</h1>
 
-<form method="POST" action="/generate" enctype="multipart/form-data" class="space-y-6">
+<form method="POST" action="/generate" enctype="multipart/form-data" class="space-y-5">
 
+  {{/* タブ切り替え */}}
   <div>
     <div class="flex gap-2 mb-3">
       <button type="button" onclick="showTab('text')" id="tab-text"
-        class="tab-btn px-4 py-2 rounded text-sm font-medium bg-indigo-600 text-white">
-        テキスト貼付
-      </button>
+        class="px-4 py-2 rounded-lg text-sm font-medium transition tab-active">テキスト貼付</button>
       <button type="button" onclick="showTab('file')" id="tab-file"
-        class="tab-btn px-4 py-2 rounded text-sm font-medium bg-gray-700 text-gray-300 hover:bg-gray-600">
-        ファイル
-      </button>
+        class="px-4 py-2 rounded-lg text-sm font-medium transition tab-inactive">ファイル</button>
       <button type="button" onclick="showTab('path')" id="tab-path"
-        class="tab-btn px-4 py-2 rounded text-sm font-medium bg-gray-700 text-gray-300 hover:bg-gray-600">
-        Obsidianパス
-      </button>
+        class="px-4 py-2 rounded-lg text-sm font-medium transition tab-inactive">Obsidianパス</button>
     </div>
 
     <div id="pane-text">
       <textarea name="source_text" rows="10"
-        class="w-full bg-gray-800 border border-gray-700 rounded p-3 text-sm focus:outline-none focus:border-indigo-500"
+        class="w-full p-3 text-sm"
+        style="background:#1e2433;border:1px solid #2e3a50;border-radius:0.5rem;color:#e2e8f0;resize:vertical"
         placeholder="学習したいテキストやMarkdownをここに貼り付けてください..."></textarea>
     </div>
     <div id="pane-file" class="hidden">
       <input type="file" name="source_file" accept=".md,.txt,.pdf,.pptx"
-        class="w-full bg-gray-800 border border-gray-700 rounded p-3 text-sm">
+        class="w-full p-3 text-sm text-slate-400"
+        style="background:#1e2433;border:1px solid #2e3a50;border-radius:0.5rem">
     </div>
     <div id="pane-path" class="hidden">
       <input type="text" name="source_path"
-        class="w-full bg-gray-800 border border-gray-700 rounded p-3 text-sm focus:outline-none focus:border-indigo-500"
+        class="w-full p-3 text-sm"
+        style="background:#1e2433;border:1px solid #2e3a50;border-radius:0.5rem;color:#e2e8f0"
         placeholder="YOUR_VAULT_PATH/Inbox/study/...">
     </div>
   </div>
 
+  {{/* 設定 */}}
   <div class="grid grid-cols-3 gap-4">
     <div>
-      <label class="block text-sm text-gray-400 mb-1">問題数</label>
+      <label class="block text-xs text-slate-400 mb-1.5 font-medium">問題数</label>
       <input type="number" name="count" value="10" min="1" max="30"
-        class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-sm focus:outline-none focus:border-indigo-500">
+        class="w-full p-2 text-sm"
+        style="background:#1e2433;border:1px solid #2e3a50;border-radius:0.5rem;color:#e2e8f0">
     </div>
     <div>
-      <label class="block text-sm text-gray-400 mb-1">クイズ形式</label>
-      <select name="format"
-        class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-sm focus:outline-none focus:border-indigo-500">
-        <option value="mix">ミックス（デフォルト）</option>
+      <label class="block text-xs text-slate-400 mb-1.5 font-medium">クイズ形式</label>
+      <select name="format" class="w-full p-2 text-sm"
+        style="background:#1e2433;border:1px solid #2e3a50;border-radius:0.5rem;color:#e2e8f0">
+        <option value="mix">ミックス</option>
         <option value="multiple">4択のみ</option>
         <option value="fillblank">穴埋めのみ</option>
       </select>
     </div>
     <div>
-      <label class="block text-sm text-gray-400 mb-1">制限時間（秒/問）</label>
-      <select name="time_limit"
-        class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-sm focus:outline-none focus:border-indigo-500">
+      <label class="block text-xs text-slate-400 mb-1.5 font-medium">制限時間（秒/問）</label>
+      <select name="time_limit" class="w-full p-2 text-sm"
+        style="background:#1e2433;border:1px solid #2e3a50;border-radius:0.5rem;color:#e2e8f0">
         <option value="0">なし</option>
         <option value="15">15秒</option>
         <option value="30">30秒</option>
@@ -66,7 +66,8 @@
   </div>
 
   <button type="submit"
-    class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded transition">
+    style="background:#4f46e5;border-radius:0.75rem"
+    class="w-full text-white font-bold py-3 transition hover:opacity-90 active:scale-98 text-base">
     🚀 クイズを生成する
   </button>
 </form>
@@ -76,11 +77,7 @@ function showTab(name) {
   ['text','file','path'].forEach(t => {
     document.getElementById('pane-'+t).classList.toggle('hidden', t !== name);
     const btn = document.getElementById('tab-'+t);
-    if (t === name) {
-      btn.className = 'tab-btn px-4 py-2 rounded text-sm font-medium bg-indigo-600 text-white';
-    } else {
-      btn.className = 'tab-btn px-4 py-2 rounded text-sm font-medium bg-gray-700 text-gray-300 hover:bg-gray-600';
-    }
+    btn.className = 'px-4 py-2 rounded-lg text-sm font-medium transition ' + (t === name ? 'tab-active' : 'tab-inactive');
   });
 }
 </script>

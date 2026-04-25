@@ -1,0 +1,28 @@
+{{template "base.html" .}}
+{{define "title"}}{{.QuizSet.Title}} - Quiz Generator{{end}}
+{{define "content"}}
+<div class="text-center py-12">
+  <div class="text-6xl mb-6">🎯</div>
+  <h1 class="text-2xl font-bold mb-2 text-slate-100">{{.QuizSet.Title}}</h1>
+
+  <div class="flex justify-center gap-6 text-sm text-slate-400 mb-10">
+    <span>📝 {{.QuizSet.Count}}問</span>
+    {{if gt .QuizSet.TimeLimit 0}}
+    <span>⏱ {{.QuizSet.TimeLimit}}秒/問</span>
+    {{else}}
+    <span>⏱ 制限なし</span>
+    {{end}}
+  </div>
+
+  <div class="flex flex-col gap-3 max-w-xs mx-auto">
+    <a href="/quiz/{{.QuizSet.ID}}"
+      class="block w-full text-center bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 rounded-xl transition text-lg">
+      スタート 🚀
+    </a>
+    <a href="/library"
+      class="block w-full text-center bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium py-3 rounded-xl transition text-sm">
+      問題集へ戻る
+    </a>
+  </div>
+</div>
+{{end}}

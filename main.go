@@ -40,6 +40,7 @@ func main() {
 	r.Get("/generating/{jobId}", handlers.GeneratingPageHandler(tmpl))
 	r.Get("/generating/{jobId}/status", handlers.GeneratingStatusHandler())
 
+	r.Get("/quiz/{id}/start", handlers.QuizStartHandler(tmpl, db))
 	r.Get("/quiz/{id}", handlers.QuizPlayHandler(tmpl, db))
 	r.Get("/quiz/{id}/question", handlers.QuizQuestionHandler(tmpl, db))
 	r.Post("/quiz/{id}/answer", handlers.QuizAnswerHandler(tmpl, db))

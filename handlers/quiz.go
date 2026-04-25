@@ -10,6 +10,24 @@ import (
 	"github.com/takeshun256/quiz-generator/models"
 )
 
+func QuizStartHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		quizSetID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+		if err != nil {
+			http.Error(w, "invalid id", http.StatusBadRequest)
+			return
+		}
+		quizSet, err := models.GetQuizSet(db, quizSetID)
+		if err != nil {
+			http.Error(w, "quiz not found", http.StatusNotFound)
+			return
+		}
+		tmpl.ExecuteTemplate(w, "start.html", map[string]any{
+			"QuizSet": quizSet,
+		})
+	}
+}
+
 func QuizPlayHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		quizSetID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)

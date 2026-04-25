@@ -8,38 +8,40 @@
 
 {{define "question-partial"}}
 {{/* 進捗バー */}}
-<div class="mb-4">
-  <div class="flex justify-between text-sm text-gray-400 mb-2">
+<div class="mb-5">
+  <div class="flex justify-between text-xs text-slate-400 mb-2">
     <span class="truncate max-w-xs">{{.QuizSet.Title}}</span>
-    <span class="shrink-0 ml-2">{{.Current}}/{{.Total}}問</span>
+    <span class="shrink-0 ml-2 font-medium">{{.Current}} / {{.Total}}</span>
   </div>
-  <div class="w-full bg-gray-800 rounded-full h-2">
-    <div class="bg-indigo-500 h-2 rounded-full transition-all duration-500"
-      style="width: {{.Progress}}%"></div>
+  <div class="w-full rounded-full h-1.5" style="background:#2e3a50">
+    <div class="h-1.5 rounded-full transition-all duration-500" style="width:{{.Progress}}%;background:#6366f1"></div>
   </div>
 </div>
 
-{{/* タイマーバー（制限時間あり時のみ） */}}
+{{/* タイマーバー */}}
 {{if gt .TimeLimit 0}}
 <div class="mb-4">
-  <div id="timer-bar-wrap" class="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
-    <div id="timer-bar" class="bg-amber-400 h-2 rounded-full w-full"></div>
+  <div class="w-full rounded-full h-1.5 overflow-hidden" style="background:#2e3a50">
+    <div id="timer-bar" class="h-1.5 rounded-full w-full transition-none" style="background:#f59e0b"></div>
   </div>
   <p id="timer-text" class="text-xs text-amber-400 text-right mt-1">{{.TimeLimit}}秒</p>
 </div>
 {{end}}
 
 {{/* 問題カード */}}
-<div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
-  <p class="text-lg font-medium mb-6 leading-relaxed">{{.Question.Question}}</p>
-  <div class="space-y-3" id="options">
+<div class="p-6 rounded-2xl" style="background:#252d3d;border:1px solid #2e3a50">
+  <p class="text-base font-medium mb-5 leading-relaxed text-slate-100">{{.Question.Question}}</p>
+  <div class="space-y-2.5" id="options">
     {{range $opt := .Question.Options}}
     <button
       hx-post="/quiz/{{$.QuizSet.ID}}/answer"
       hx-vals='{"question_id": "{{$.Question.ID}}", "chosen": "{{$opt}}", "position": "{{$.Current}}"}'
       hx-target="#question-area"
       hx-swap="innerHTML"
-      class="option-btn w-full text-left px-4 py-3 rounded-lg border border-gray-700 bg-gray-800 hover:border-indigo-500 hover:bg-gray-700 transition text-sm">
+      class="option-btn w-full text-left px-4 py-3 rounded-xl text-sm text-slate-200 transition"
+      style="background:#1e2433;border:1px solid #2e3a50"
+      onmouseover="this.style.borderColor='#6366f1';this.style.background='#252d3d'"
+      onmouseout="this.style.borderColor='#2e3a50';this.style.background='#1e2433'">
       {{$opt}}
     </button>
     {{end}}
@@ -58,7 +60,6 @@
   let remaining = limit;
   let expired = false;
 
-  // アニメーション: CSS transition で右から縮む
   requestAnimationFrame(() => {
     bar.style.transition = `width ${limit}s linear`;
     bar.style.width = '0%';
@@ -67,15 +68,15 @@
   const tick = setInterval(() => {
     remaining--;
     if (text) text.textContent = remaining + '秒';
-    if (remaining <= 5 && bar) bar.classList.replace('bg-amber-400', 'bg-red-500');
+    if (remaining <= 5 && bar) bar.style.background = '#ef4444';
     if (remaining <= 0) {
       clearInterval(tick);
       if (expired) return;
       expired = true;
-      // ボタンを無効化してタイムアウト送信
       document.querySelectorAll('.option-btn').forEach(b => {
         b.disabled = true;
-        b.classList.add('opacity-40', 'cursor-not-allowed');
+        b.style.opacity = '0.4';
+        b.style.cursor = 'not-allowed';
       });
       htmx.ajax('POST', `/quiz/${quizId}/answer`, {
         target: '#question-area',
@@ -85,7 +86,6 @@
     }
   }, 1000);
 
-  // 手動回答でタイマーをキャンセル
   document.getElementById('options').addEventListener('htmx:beforeRequest', () => {
     expired = true;
     clearInterval(tick);
@@ -97,46 +97,53 @@
 
 {{define "answer-partial"}}
 {{/* 進捗バー */}}
-<div class="mb-4">
-  <div class="flex justify-between text-sm text-gray-400 mb-2">
+<div class="mb-5">
+  <div class="flex justify-between text-xs text-slate-400 mb-2">
     <span class="truncate max-w-xs">{{.QuizSet.Title}}</span>
-    <span class="shrink-0 ml-2">{{.Current}}/{{.Total}}問</span>
+    <span class="shrink-0 ml-2 font-medium">{{.Current}} / {{.Total}}</span>
   </div>
-  <div class="w-full bg-gray-800 rounded-full h-2">
-    <div class="bg-indigo-500 h-2 rounded-full transition-all duration-500"
-      style="width: {{.Progress}}%"></div>
+  <div class="w-full rounded-full h-1.5" style="background:#2e3a50">
+    <div class="h-1.5 rounded-full transition-all duration-500" style="width:{{.Progress}}%;background:#6366f1"></div>
   </div>
 </div>
 
 {{/* 回答結果カード */}}
-<div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+<div class="p-6 rounded-2xl" style="background:#252d3d;border:1px solid #2e3a50">
   {{if .Timeout}}
-  <div class="text-amber-400 font-bold text-sm mb-4">⏱ 時間切れ</div>
+  <div class="text-amber-400 font-semibold text-xs mb-3 flex items-center gap-1.5">
+    <span>⏱</span> 時間切れ
+  </div>
   {{end}}
-  <p class="text-lg font-medium mb-6 leading-relaxed">{{.Question.Question}}</p>
+  <p class="text-base font-medium mb-5 leading-relaxed text-slate-100">{{.Question.Question}}</p>
 
-  <div class="space-y-3 mb-6">
+  <div class="space-y-2.5 mb-5">
     {{range $opt := .Question.Options}}
-    <div class="px-4 py-3 rounded-lg border text-sm
-      {{if eq $opt $.Question.Correct}}border-green-500 bg-green-900/30 text-green-300
-      {{else if and (not $.Timeout) (eq $opt $.Chosen) (ne $opt $.Question.Correct)}}border-red-500 bg-red-900/30 text-red-300
-      {{else}}border-gray-700 bg-gray-800 text-gray-400{{end}}">
+    <div class="px-4 py-3 rounded-xl text-sm
+      {{if eq $opt $.Question.Correct}}text-emerald-300
+      {{else if and (not $.Timeout) (eq $opt $.Chosen) (ne $opt $.Question.Correct)}}text-red-300
+      {{else}}text-slate-500{{end}}"
+      style="
+        {{if eq $opt $.Question.Correct}}background:#0d2418;border:1px solid #166534
+        {{else if and (not $.Timeout) (eq $opt $.Chosen) (ne $opt $.Question.Correct)}}background:#2d0d0d;border:1px solid #991b1b
+        {{else}}background:#1e2433;border:1px solid #2e3a50{{end}}
+      ">
       {{$opt}}
-      {{if eq $opt $.Question.Correct}} ✓{{end}}
-      {{if and (not $.Timeout) (eq $opt $.Chosen) (ne $opt $.Question.Correct)}} ✗{{end}}
+      {{if eq $opt $.Question.Correct}}<span class="ml-1 text-emerald-400">✓</span>{{end}}
+      {{if and (not $.Timeout) (eq $opt $.Chosen) (ne $opt $.Question.Correct)}}<span class="ml-1 text-red-400">✗</span>{{end}}
     </div>
     {{end}}
   </div>
 
   {{if .Question.Explanation}}
-  <div class="bg-gray-800 rounded-lg p-4 mb-6 text-sm text-gray-300 border-l-4 border-indigo-500">
-    <span class="font-bold text-indigo-400">解説: </span>{{.Question.Explanation}}
+  <div class="p-4 mb-5 rounded-xl text-sm text-slate-300 leading-relaxed" style="background:#1a2030;border-left:3px solid #6366f1">
+    <span class="font-semibold text-indigo-300">解説: </span>{{.Question.Explanation}}
   </div>
   {{end}}
 
   {{if .IsLast}}
   <a href="/quiz/{{.QuizSet.ID}}/result"
-    class="block w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded transition">
+    class="block w-full text-center text-white font-bold py-3 rounded-xl transition hover:opacity-90"
+    style="background:#4f46e5">
     結果を見る 🏁
   </a>
   {{else}}
@@ -144,7 +151,8 @@
     hx-get="/quiz/{{.QuizSet.ID}}/question?position={{.Next}}"
     hx-target="#question-area"
     hx-swap="innerHTML"
-    class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded transition">
+    class="w-full text-white font-bold py-3 rounded-xl transition hover:opacity-90"
+    style="background:#4f46e5;border:none;cursor:pointer">
     次の問題へ →
   </button>
   {{end}}

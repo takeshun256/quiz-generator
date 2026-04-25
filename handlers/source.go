@@ -184,7 +184,7 @@ func GeneratingStatusHandler() http.HandlerFunc {
 
 		switch job.Status {
 		case "done":
-			w.Header().Set("HX-Redirect", fmt.Sprintf("/quiz/%d", job.QuizSetID))
+			w.Header().Set("HX-Redirect", fmt.Sprintf("/quiz/%d/start", job.QuizSetID))
 			w.WriteHeader(http.StatusOK)
 		case "error":
 			w.Write([]byte(fmt.Sprintf(`<div class="text-center py-16 text-red-400">

@@ -6,8 +6,52 @@
   hx-trigger="every 2s"
   hx-target="this"
   hx-swap="outerHTML">
+
   <div class="text-5xl mb-6 animate-spin inline-block">⚙️</div>
-  <h2 class="text-xl font-bold text-indigo-400">クイズを生成中...</h2>
-  <p class="text-gray-400 mt-2 text-sm">Claudeが問題を作成しています。しばらくお待ちください。</p>
+  <h2 class="text-xl font-bold text-violet-400 mb-4">クイズを生成中...</h2>
+
+  {{/* ステップ進捗 */}}
+  <div class="max-w-xs mx-auto space-y-2 text-left mb-6">
+    <div id="step1" class="flex items-center gap-2 text-sm text-slate-300">
+      <span class="step-icon">✅</span> ソーステキストを読み込みました
+    </div>
+    <div id="step2" class="flex items-center gap-2 text-sm text-slate-500">
+      <span class="step-icon animate-pulse">🔄</span> Claudeが問題を考えています...
+    </div>
+    <div id="step3" class="flex items-center gap-2 text-sm text-slate-600">
+      <span class="step-icon">⏳</span> 問題をデータベースに保存
+    </div>
+  </div>
+
+  <p id="hint-text" class="text-slate-500 text-xs">通常10〜30秒かかります</p>
 </div>
+
+<script>
+(function() {
+  let elapsed = 0;
+  const step2 = document.getElementById('step2');
+  const step3 = document.getElementById('step3');
+  const hint  = document.getElementById('hint-text');
+
+  const msgs = [
+    'Claudeが問題を考えています...',
+    '選択肢を作成しています...',
+    '解説文を執筆中...',
+    'JSON形式に整えています...',
+    'もうすぐ完成します...',
+  ];
+
+  setInterval(() => {
+    elapsed += 2;
+    const idx = Math.min(Math.floor(elapsed / 6), msgs.length - 1);
+    step2.querySelector('.step-icon').textContent = '🔄';
+    step2.querySelector('.step-icon').className = 'step-icon animate-pulse';
+    step2.childNodes[1] && (step2.childNodes[1].textContent = ' ' + msgs[idx]);
+
+    if (elapsed >= 20) {
+      hint.textContent = '少し時間がかかっています。そのままお待ちください...';
+    }
+  }, 2000);
+})();
+</script>
 {{end}}
