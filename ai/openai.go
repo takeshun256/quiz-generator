@@ -100,10 +100,15 @@ func GenerateQuiz(ctx context.Context, sourceText string, count int, format Quiz
 
 	var quiz GeneratedQuiz
 	if err := json.Unmarshal([]byte(raw), &quiz); err != nil {
-		return nil, fmt.Errorf("failed to parse quiz JSON: %w\nraw: %s", err, raw)
+		// JSONパース失敗 = Claudeが拒否・説明文を返した場合はその内容をそのまま表示
+		msg := strings.TrimSpace(response.Result)
+		if msg == "" {
+			msg = raw
+		}
+		return nil, fmt.Errorf("クイズを生成できませんでした。\n\nClaudeからのメッセージ:\n%s", msg)
 	}
 	if len(quiz.Questions) == 0 {
-		return nil, fmt.Errorf("no questions generated")
+		return nil, fmt.Errorf("問題が生成されませんでした。ソーステキストに十分な学習内容が含まれているか確認してください。")
 	}
 	return &quiz, nil
 }

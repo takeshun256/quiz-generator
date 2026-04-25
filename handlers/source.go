@@ -190,7 +190,8 @@ func GeneratingStatusHandler() http.HandlerFunc {
 				<a href="/" class="mt-4 inline-block text-indigo-400 hover:underline">やり直す</a>
 			</div>`, job.Error)))
 		default:
-			w.WriteHeader(http.StatusOK)
+			// 生成中: htmx に何もスワップさせない（204 = No Content）
+			w.WriteHeader(http.StatusNoContent)
 		}
 	}
 }
