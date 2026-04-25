@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"html/template"
 	"io"
 	"log"
 	"net/http"
@@ -35,13 +34,13 @@ func newJobID() string {
 	return fmt.Sprintf("%d", time.Now().UnixNano())
 }
 
-func IndexHandler(tmpl *template.Template) http.HandlerFunc {
+func IndexHandler(tmpl *Renderer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tmpl.ExecuteTemplate(w, "index.html", nil)
 	}
 }
 
-func GenerateHandler(tmpl *template.Template, db *sql.DB) http.HandlerFunc {
+func GenerateHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseMultipartForm(10 << 20); err != nil {
 			r.ParseForm()
@@ -145,7 +144,7 @@ func GenerateHandler(tmpl *template.Template, db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func GeneratingPageHandler(tmpl *template.Template) http.HandlerFunc {
+func GeneratingPageHandler(tmpl *Renderer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		jobID := chi.URLParam(r, "jobId")
 		tmpl.ExecuteTemplate(w, "generating.html", map[string]any{"JobID": jobID})

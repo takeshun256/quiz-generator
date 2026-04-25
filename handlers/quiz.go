@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"database/sql"
-	"html/template"
 	"net/http"
 	"strconv"
 
@@ -10,7 +9,7 @@ import (
 	"github.com/takeshun256/quiz-generator/models"
 )
 
-func QuizPlayHandler(tmpl *template.Template, db *sql.DB) http.HandlerFunc {
+func QuizPlayHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		quizSetID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 		if err != nil {
@@ -41,7 +40,7 @@ func QuizPlayHandler(tmpl *template.Template, db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func QuizQuestionHandler(tmpl *template.Template, db *sql.DB) http.HandlerFunc {
+func QuizQuestionHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		quizSetID, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 		position, _ := strconv.Atoi(r.URL.Query().Get("position"))
@@ -69,7 +68,7 @@ func QuizQuestionHandler(tmpl *template.Template, db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func QuizAnswerHandler(tmpl *template.Template, db *sql.DB) http.HandlerFunc {
+func QuizAnswerHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		quizSetID, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 		r.ParseForm()
@@ -115,7 +114,7 @@ type ResultItem struct {
 	IsCorrect bool
 }
 
-func QuizResultHandler(tmpl *template.Template, db *sql.DB) http.HandlerFunc {
+func QuizResultHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		quizSetID, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 

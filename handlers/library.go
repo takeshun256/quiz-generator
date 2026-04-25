@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 	"time"
@@ -13,7 +12,7 @@ import (
 	"github.com/takeshun256/quiz-generator/models"
 )
 
-func LibraryHandler(tmpl *template.Template, db *sql.DB) http.HandlerFunc {
+func LibraryHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sets, err := models.ListQuizSets(db)
 		if err != nil {

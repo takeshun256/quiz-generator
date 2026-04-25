@@ -1,7 +1,6 @@
 package main
 
 import (
-	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -24,11 +23,8 @@ func main() {
 	}
 	defer db.Close()
 
-	// テンプレート読み込み
-	tmpl, err := template.ParseGlob("templates/*.html")
-	if err != nil {
-		log.Fatalf("template parse error: %v", err)
-	}
+	// テンプレートレンダラー（ページごとに base + page をパースして block 上書き問題を回避）
+	tmpl := &handlers.Renderer{Dir: "templates"}
 
 	// ルーター
 	r := chi.NewRouter()
