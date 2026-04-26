@@ -19,6 +19,7 @@ type Question struct {
 	ID          int64
 	QuizSetID   int64
 	Type        string
+	Category    string
 	Question    string
 	Options     []string
 	Correct     string
@@ -51,16 +52,16 @@ func CreateQuestion(db *sql.DB, q Question) error {
 		return err
 	}
 	_, err = db.Exec(
-		`INSERT INTO questions (quiz_set_id, type, question, options, correct, explanation, position)
-		 VALUES (?, ?, ?, ?, ?, ?, ?)`,
-		q.QuizSetID, q.Type, q.Question, string(opts), q.Correct, q.Explanation, q.Position,
+		`INSERT INTO questions (quiz_set_id, type, category, question, options, correct, explanation, position)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		q.QuizSetID, q.Type, q.Category, q.Question, string(opts), q.Correct, q.Explanation, q.Position,
 	)
 	return err
 }
 
 func GetQuestion(db *sql.DB, quizSetID int64, position int) (*Question, error) {
 	row := db.QueryRow(
-		`SELECT id, quiz_set_id, type, question, options, correct, explanation, position
+		`SELECT id, quiz_set_id, type, category, question, options, correct, explanation, position
 		 FROM questions WHERE quiz_set_id = ? AND position = ?`,
 		quizSetID, position,
 	)
@@ -69,7 +70,7 @@ func GetQuestion(db *sql.DB, quizSetID int64, position int) (*Question, error) {
 
 func GetQuestions(db *sql.DB, quizSetID int64) ([]Question, error) {
 	rows, err := db.Query(
-		`SELECT id, quiz_set_id, type, question, options, correct, explanation, position
+		`SELECT id, quiz_set_id, type, category, question, options, correct, explanation, position
 		 FROM questions WHERE quiz_set_id = ? ORDER BY position`,
 		quizSetID,
 	)
@@ -204,7 +205,7 @@ type scanner interface {
 func scanQuestion(s scanner) (*Question, error) {
 	var q Question
 	var opts string
-	err := s.Scan(&q.ID, &q.QuizSetID, &q.Type, &q.Question, &opts, &q.Correct, &q.Explanation, &q.Position)
+	err := s.Scan(&q.ID, &q.QuizSetID, &q.Type, &q.Category, &q.Question, &opts, &q.Correct, &q.Explanation, &q.Position)
 	if err != nil {
 		return nil, err
 	}

@@ -15,6 +15,7 @@ type GeneratedQuiz struct {
 
 type GeneratedQuestion struct {
 	Type        string   `json:"type"`
+	Category    string   `json:"category"`
 	Question    string   `json:"question"`
 	Options     []string `json:"options"`
 	Correct     string   `json:"correct"`
@@ -55,6 +56,7 @@ func GenerateQuiz(ctx context.Context, sourceText string, count int, format Quiz
   "questions": [
     {
       "type": "multiple",
+      "category": "トピック名（例: トランザクション・インデックス・パフォーマンス など、ソース内容に合わせた短いカテゴリ名）",
       "question": "問題文",
       "options": ["選択肢A", "選択肢B", "選択肢C", "選択肢D"],
       "correct": "選択肢A",
@@ -67,6 +69,7 @@ func GenerateQuiz(ctx context.Context, sourceText string, count int, format Quiz
 - options は必ず4つ
 - correct は options のいずれかと完全一致する文字列
 - explanation は必ず含める
+- category は各問題のトピックを表す短いラベル（10文字以内）
 - 問題は互いに重複しないようにする
 - ソーステキストの内容に基づいた問題のみ生成する
 

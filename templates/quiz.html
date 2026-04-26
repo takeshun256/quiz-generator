@@ -30,7 +30,20 @@
 
 {{/* 問題カード */}}
 <div class="p-6 rounded-2xl" style="background:#252d3d;border:1px solid #2e3a50">
-  <p class="text-base font-medium mb-5 leading-relaxed text-slate-100">{{.Question.Question}}</p>
+  <div class="flex flex-wrap gap-2 mb-3">
+    {{if eq .Question.Type "fillblank"}}
+    <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full"
+      style="background:#1e3a5f;color:#7dd3fc;border:1px solid #1e4a7a">✏️ 穴埋め</span>
+    {{else}}
+    <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full"
+      style="background:#1a2f1a;color:#86efac;border:1px solid #166534">🔘 4択</span>
+    {{end}}
+    {{if .Question.Category}}
+    <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full"
+      style="background:#2d1f3d;color:#c4b5fd;border:1px solid #5b21b6">🏷 {{.Question.Category}}</span>
+    {{end}}
+  </div>
+  <p id="question-text" class="text-base font-medium mb-5 leading-relaxed text-slate-100">{{.Question.Question}}</p>
   <div class="space-y-2.5" id="options">
     {{range $opt := .Question.Options}}
     <button
@@ -48,6 +61,16 @@
   </div>
 </div>
 
+<script>
+(function() {
+  const el = document.getElementById('question-text');
+  if (el && el.textContent.includes('___')) {
+    el.innerHTML = el.textContent.replace(/___/g,
+      '<span style="display:inline-block;min-width:5rem;border-bottom:2px solid #6366f1;background:#1e2433;color:#a5b4fc;padding:0 0.5rem;border-radius:0.25rem;font-weight:600;letter-spacing:0.05em">　　　</span>');
+  }
+})();
+</script>
+
 {{if gt .TimeLimit 0}}
 <script>
 (function() {
@@ -61,8 +84,10 @@
   let expired = false;
 
   requestAnimationFrame(() => {
-    bar.style.transition = `width ${limit}s linear`;
-    bar.style.width = '0%';
+    requestAnimationFrame(() => {
+      bar.style.transition = `width ${limit}s linear`;
+      bar.style.width = '0%';
+    });
   });
 
   const tick = setInterval(() => {
@@ -114,7 +139,29 @@
     <span>⏱</span> 時間切れ
   </div>
   {{end}}
-  <p class="text-base font-medium mb-5 leading-relaxed text-slate-100">{{.Question.Question}}</p>
+  <div class="flex flex-wrap gap-2 mb-3">
+    {{if eq .Question.Type "fillblank"}}
+    <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full"
+      style="background:#1e3a5f;color:#7dd3fc;border:1px solid #1e4a7a">✏️ 穴埋め</span>
+    {{else}}
+    <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full"
+      style="background:#1a2f1a;color:#86efac;border:1px solid #166534">🔘 4択</span>
+    {{end}}
+    {{if .Question.Category}}
+    <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full"
+      style="background:#2d1f3d;color:#c4b5fd;border:1px solid #5b21b6">🏷 {{.Question.Category}}</span>
+    {{end}}
+  </div>
+  <p id="answer-question-text" class="text-base font-medium mb-5 leading-relaxed text-slate-100">{{.Question.Question}}</p>
+  <script>
+  (function() {
+    const el = document.getElementById('answer-question-text');
+    if (el && el.textContent.includes('___')) {
+      el.innerHTML = el.textContent.replace(/___/g,
+        '<span style="display:inline-block;min-width:5rem;border-bottom:2px solid #6366f1;background:#1e2433;color:#a5b4fc;padding:0 0.5rem;border-radius:0.25rem;font-weight:600;letter-spacing:0.05em">　　　</span>');
+    }
+  })();
+  </script>
 
   <div class="space-y-2.5 mb-5">
     {{range $opt := .Question.Options}}

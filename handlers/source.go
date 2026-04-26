@@ -77,7 +77,7 @@ func GenerateHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 			}
 		}
 
-		// Obsidianパス
+		// ローカルパス
 		if p := r.FormValue("source_path"); p != "" {
 			b, err := os.ReadFile(p)
 			if err != nil {
@@ -141,6 +141,7 @@ func GenerateHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 				err := models.CreateQuestion(db, models.Question{
 					QuizSetID:   quizSetID,
 					Type:        q.Type,
+					Category:    q.Category,
 					Question:    q.Question,
 					Options:     q.Options,
 					Correct:     q.Correct,

@@ -58,5 +58,6 @@ func migrate(db *sql.DB) error {
 	}
 	// 既存DBへのカラム追加（エラーは無視）
 	db.Exec(`ALTER TABLE quiz_sets ADD COLUMN time_limit INTEGER NOT NULL DEFAULT 0`)
+	db.Exec(`ALTER TABLE questions ADD COLUMN category TEXT NOT NULL DEFAULT ''`)
 	return nil
 }
