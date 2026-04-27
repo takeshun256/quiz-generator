@@ -2,9 +2,18 @@
 
 テキスト・ファイル・PowerPointスライドからAIが自動でクイズを生成するWebアプリ。
 
-![トップ画面](docs/screenshot-top.png)
-![クイズ画面](docs/screenshot-quiz.png)
-![結果画面](docs/screenshot-result.png)
+<table>
+  <tr>
+    <td align="center"><b>① テキスト入力</b><br>学習素材を貼り付けてクイズを生成</td>
+    <td align="center"><b>② クイズ回答</b><br>4択・穴埋め問題をブラウザでプレイ</td>
+    <td align="center"><b>③ 結果確認</b><br>スコアと解説で振り返り</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshot-top.png" width="260"/></td>
+    <td><img src="docs/screenshot-quiz.png" width="260"/></td>
+    <td><img src="docs/screenshot-result.png" width="260"/></td>
+  </tr>
+</table>
 
 ## 機能
 
