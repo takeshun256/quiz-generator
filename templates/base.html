@@ -20,6 +20,23 @@
       }
     }
   </script>
+  <script>
+  function replaceBlank(id) {
+    const el = document.getElementById(id);
+    if (el && el.textContent.includes('___')) {
+      el.innerHTML = el.textContent.replace(/_{3,}/g,
+        '<span style="display:inline-block;min-width:5rem;border-bottom:2px solid #6366f1;background:#1e2433;color:#a5b4fc;padding:0 0.5rem;border-radius:0.25rem;font-weight:600;letter-spacing:0.05em">　　　</span>');
+    }
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    replaceBlank('question-text');
+    replaceBlank('answer-question-text');
+  });
+  document.addEventListener('htmx:afterSettle', function() {
+    replaceBlank('question-text');
+    replaceBlank('answer-question-text');
+  });
+  </script>
 </head>
 <body class="min-h-screen text-slate-200" style="background:#161c2a">
   <nav style="background:#1a2030;border-bottom:1px solid #2a3348" class="px-6 py-3 flex items-center gap-6">
