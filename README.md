@@ -6,12 +6,18 @@
   <tr>
     <td align="center"><b>① テキスト入力</b><br>学習素材を貼り付けてクイズを生成</td>
     <td align="center"><b>② クイズ回答</b><br>4択・穴埋め問題をブラウザでプレイ</td>
-    <td align="center"><b>③ 結果確認</b><br>スコアと解説で振り返り</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshot-top.png" width="260"/></td>
-    <td><img src="docs/screenshot-quiz.png" width="260"/></td>
-    <td><img src="docs/screenshot-result.png" width="260"/></td>
+    <td><img src="docs/screenshot-top.png" width="380"/></td>
+    <td><img src="docs/screenshot-quiz.png" width="380"/></td>
+  </tr>
+  <tr>
+    <td align="center"><b>③ 結果確認</b><br>スコアと解説で振り返り</td>
+    <td align="center"><b>④ 問題集</b><br>過去問の管理・挑戦履歴の確認</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshot-result.png" width="380"/></td>
+    <td><img src="docs/screenshot-library.png" width="380"/></td>
   </tr>
 </table>
 
