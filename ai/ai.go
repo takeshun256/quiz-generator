@@ -38,9 +38,9 @@ func GenerateQuiz(ctx context.Context, sourceText string, count int, format Quiz
 	case FormatMultiple:
 		formatInstruction = `全問 type="multiple"（4択問題）にしてください。`
 	case FormatFillblank:
-		formatInstruction = `全問 type="fillblank"（穴埋め選択問題）にしてください。問題文中の空欄は___(アンダースコア3つ)で表してください。`
+		formatInstruction = `全問 type="fillblank"（穴埋め選択問題）にしてください。問題文中の空欄は___(アンダースコア3つ)で表してください。空欄は必ず1問につき1つだけにしてください。`
 	default:
-		formatInstruction = `type="multiple"（4択）と type="fillblank"（穴埋め選択）を半々程度でミックスしてください。穴埋め問題の空欄は___(アンダースコア3つ)で表してください。`
+		formatInstruction = `type="multiple"（4択）と type="fillblank"（穴埋め選択）を半々程度でミックスしてください。穴埋め問題の空欄は___(アンダースコア3つ)で表してください。空欄は必ず1問につき1つだけにしてください。`
 	}
 
 	extraSection := ""
