@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os/exec"
 	"strings"
+
+	"github.com/openai/openai-go"
+	"github.com/openai/openai-go/option"
 )
 
 type GeneratedQuiz struct {
@@ -30,12 +32,7 @@ const (
 	FormatMix       QuizFormat = "mix"
 )
 
-// claudeOutput は `claude --output-format json` の戻り値構造
-type claudeOutput struct {
-	Result string `json:"result"`
-}
-
-func GenerateQuiz(ctx context.Context, sourceText string, count int, format QuizFormat) (*GeneratedQuiz, error) {
+func GenerateQuiz(ctx context.Context, sourceText string, count int, format QuizFormat, apiKey string, extraInstruction string) (*GeneratedQuiz, error) {
 	formatInstruction := ""
 	switch format {
 	case FormatMultiple:
@@ -46,10 +43,15 @@ func GenerateQuiz(ctx context.Context, sourceText string, count int, format Quiz
 		formatInstruction = `type="multiple"（4択）と type="fillblank"（穴埋め選択）を半々程度でミックスしてください。穴埋め問題の空欄は___(アンダースコア3つ)で表してください。`
 	}
 
+	extraSection := ""
+	if extraInstruction != "" {
+		extraSection = fmt.Sprintf("\n追加指示:\n%s\n", extraInstruction)
+	}
+
 	prompt := fmt.Sprintf(`以下のソーステキストを読んで、学習用クイズを%d問生成してください。
 
 %s
-
+%s
 出力は以下のJSONのみを返してください（説明文・マークダウン不要）:
 {
   "title": "クイズのタイトル（ソースの内容を反映した短いタイトル）",
@@ -71,29 +73,35 @@ func GenerateQuiz(ctx context.Context, sourceText string, count int, format Quiz
 - explanation は必ず含める
 - category は各問題のトピックを表す短いラベル（10文字以内）
 - 問題は互いに重複しないようにする
-- ソーステキストの内容に基づいた問題のみ生成する
+- ソーステキスト全体のメインテーマに基づいた問題のみ生成する
+- 自己紹介・目次・アジェンダ・謝辞など学習内容と無関係なスライドは無視する
+- メインテーマから大きく外れるトピックは問題に含めない
 
 ソーステキスト:
-%s`, count, formatInstruction, sourceText)
+%s`, count, formatInstruction, extraSection, sourceText)
 
-	cmd := exec.CommandContext(ctx, "claude", "-p", prompt, "--output-format", "json")
-	out, err := cmd.Output()
+	opts := []option.RequestOption{}
+	if apiKey != "" {
+		opts = append(opts, option.WithAPIKey(apiKey))
+	}
+	client := openai.NewClient(opts...)
+
+	resp, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
+		Model: openai.ChatModelGPT4oMini,
+		Messages: []openai.ChatCompletionMessageParamUnion{
+			openai.UserMessage(prompt),
+		},
+	})
 	if err != nil {
-		stderr := ""
-		if ee, ok := err.(*exec.ExitError); ok {
-			stderr = string(ee.Stderr)
-		}
-		return nil, fmt.Errorf("claude command failed: %w\nstderr: %s", err, stderr)
+		return nil, fmt.Errorf("AI API error: %w", err)
 	}
 
-	var response claudeOutput
-	if err := json.Unmarshal(out, &response); err != nil {
-		// --bare モードでは result フィールドなしに直接テキストが返る場合もあるためフォールバック
-		response.Result = strings.TrimSpace(string(out))
+	if len(resp.Choices) == 0 {
+		return nil, fmt.Errorf("APIからの応答が空でした")
 	}
+	raw := resp.Choices[0].Message.Content
 
-	// result の中の JSON を抽出（マークダウンコードブロックが混入した場合に対応）
-	raw := response.Result
+	// マークダウンコードブロックが混入した場合に対応
 	if idx := strings.Index(raw, "{"); idx >= 0 {
 		raw = raw[idx:]
 	}
@@ -103,12 +111,7 @@ func GenerateQuiz(ctx context.Context, sourceText string, count int, format Quiz
 
 	var quiz GeneratedQuiz
 	if err := json.Unmarshal([]byte(raw), &quiz); err != nil {
-		// JSONパース失敗 = Claudeが拒否・説明文を返した場合はその内容をそのまま表示
-		msg := strings.TrimSpace(response.Result)
-		if msg == "" {
-			msg = raw
-		}
-		return nil, fmt.Errorf("クイズを生成できませんでした。\n\nClaudeからのメッセージ:\n%s", msg)
+		return nil, fmt.Errorf("クイズを生成できませんでした。\n\nAIからのメッセージ:\n%s", raw)
 	}
 	if len(quiz.Questions) == 0 {
 		return nil, fmt.Errorf("問題が生成されませんでした。ソーステキストに十分な学習内容が含まれているか確認してください。")

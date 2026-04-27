@@ -22,6 +22,8 @@ import (
 	"github.com/takeshun256/quiz-generator/models"
 )
 
+var openaiAPIKey = os.Getenv("OPENAI_API_KEY")
+
 type Job struct {
 	ID        string
 	Status    string // "running" | "done" | "error"
@@ -77,16 +79,6 @@ func GenerateHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 			}
 		}
 
-		// ローカルパス
-		if p := r.FormValue("source_path"); p != "" {
-			b, err := os.ReadFile(p)
-			if err != nil {
-				http.Error(w, "ファイルを読み込めませんでした: "+err.Error(), http.StatusBadRequest)
-				return
-			}
-			sourceText = string(b)
-		}
-
 		if sourceText == "" {
 			http.Error(w, "ソーステキストを入力してください", http.StatusBadRequest)
 			return
@@ -115,7 +107,8 @@ func GenerateHandler(tmpl *Renderer, db *sql.DB) http.HandlerFunc {
 			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 			defer cancel()
 
-			quiz, err := ai.GenerateQuiz(ctx, sourceText, count, format)
+			extraInstruction := r.FormValue("extra_instruction")
+			quiz, err := ai.GenerateQuiz(ctx, sourceText, count, format, openaiAPIKey, extraInstruction)
 			if err != nil {
 				log.Printf("GenerateQuiz error: %v", err)
 				jobsMu.Lock()

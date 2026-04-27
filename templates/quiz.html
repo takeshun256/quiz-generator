@@ -65,7 +65,7 @@
 (function() {
   const el = document.getElementById('question-text');
   if (el && el.textContent.includes('___')) {
-    el.innerHTML = el.textContent.replace(/___/g,
+    el.innerHTML = el.textContent.replace(/_{3,}/g,
       '<span style="display:inline-block;min-width:5rem;border-bottom:2px solid #6366f1;background:#1e2433;color:#a5b4fc;padding:0 0.5rem;border-radius:0.25rem;font-weight:600;letter-spacing:0.05em">　　　</span>');
   }
 })();
@@ -157,7 +157,7 @@
   (function() {
     const el = document.getElementById('answer-question-text');
     if (el && el.textContent.includes('___')) {
-      el.innerHTML = el.textContent.replace(/___/g,
+      el.innerHTML = el.textContent.replace(/_{3,}/g,
         '<span style="display:inline-block;min-width:5rem;border-bottom:2px solid #6366f1;background:#1e2433;color:#a5b4fc;padding:0 0.5rem;border-radius:0.25rem;font-weight:600;letter-spacing:0.05em">　　　</span>');
     }
   })();
