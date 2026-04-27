@@ -58,18 +58,27 @@ func GenerateQuiz(ctx context.Context, sourceText string, count int, format Quiz
   "questions": [
     {
       "type": "multiple",
-      "category": "トピック名（例: トランザクション・インデックス・パフォーマンス など、ソース内容に合わせた短いカテゴリ名）",
-      "question": "問題文",
+      "category": "カテゴリ名",
+      "question": "4択の問題文",
       "options": ["選択肢A", "選択肢B", "選択肢C", "選択肢D"],
       "correct": "選択肢A",
+      "explanation": "なぜこれが正解かの解説（2〜3文）"
+    },
+    {
+      "type": "fillblank",
+      "category": "カテゴリ名",
+      "question": "___は非同期処理のキューを管理する仕組みである。",
+      "options": ["タスクキュー", "コールスタック", "ヒープ", "スコープチェーン"],
+      "correct": "タスクキュー",
       "explanation": "なぜこれが正解かの解説（2〜3文）"
     }
   ]
 }
 
 重要なルール:
-- options は必ず4つ
+- options は multiple・fillblank どちらのタイプでも必ず4つ
 - correct は options のいずれかと完全一致する文字列
+- fillblank の question には空欄を ___(アンダースコア3つ) で1箇所だけ含める
 - explanation は必ず含める
 - category は各問題のトピックを表す短いラベル（10文字以内）
 - 問題は互いに重複しないようにする
