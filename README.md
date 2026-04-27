@@ -4,6 +4,7 @@
 
 ![トップ画面](docs/screenshot-top.png)
 ![クイズ画面](docs/screenshot-quiz.png)
+![結果画面](docs/screenshot-result.png)
 
 ## 機能
 
