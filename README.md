@@ -2,6 +2,8 @@
 
 テキスト・ファイル・PowerPointスライドからAIが自動でクイズを生成するWebアプリ。
 
+![トップ画面](docs/screenshot-top.png)
+
 ## 機能
 
 - テキスト貼り付け / ファイルアップロード（.txt, .md, .pptx）からクイズを生成
@@ -24,7 +26,7 @@ git clone https://github.com/takeshun256/quiz-generator.git
 cd quiz-generator
 
 cp .env.example .env
-# .env を編集して ANTHROPIC_API_KEY を設定
+# .env を編集して OPENAI_API_KEY を設定
 
 source .env
 go run .
@@ -36,7 +38,7 @@ go run .
 
 ```bash
 cp .env.example .env
-# .env を編集して ANTHROPIC_API_KEY を設定
+# .env を編集して OPENAI_API_KEY を設定
 
 docker compose up --build
 ```
