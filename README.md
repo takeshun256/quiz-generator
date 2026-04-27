@@ -3,6 +3,7 @@
 テキスト・ファイル・PowerPointスライドからAIが自動でクイズを生成するWebアプリ。
 
 ![トップ画面](docs/screenshot-top.png)
+![クイズ画面](docs/screenshot-quiz.png)
 
 ## 機能
 
